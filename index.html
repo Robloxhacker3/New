@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua to Dylib Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 500px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lua to Dylib Converter</h1>
+        <textarea id="luaCode" placeholder="Paste your Lua code here..."></textarea>
+        <br>
+        <button onclick="submitLuaCode()">Get Dylib</button>
+        <p id="statusMessage" class="error"></p>
+    </div>
+
+    <script>
+        async function submitLuaCode() {
+            const luaCode = document.getElementById('luaCode').value;
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = '';  // Clear previous messages
+
+            if (!luaCode.trim()) {
+                statusMessage.textContent = 'Please provide Lua code.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('lua_code', luaCode);
+
+            try {
+                const response = await fetch('/generate-dylib', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    statusMessage.textContent = result.error || 'An error occurred.';
+                } else {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'lua_dylib_package.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error connecting to the server.';
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>
